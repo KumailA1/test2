@@ -1067,7 +1067,8 @@ IMPORTANT RULES:
 - Always respond in English only.
 
 Respond ONLY with valid JSON, no markdown, no preamble:
-{"sections":[{"title":"Problem Statement","strengths":["..."],"suggestions":["..."]},{"title":"Section 1 — Project Overview","strengths":["..."],"suggestions":["..."]},{"title":"Section 2 — Business Objectives","strengths":["..."],"suggestions":["..."]},{"title":"Section 3 — Project Scope","strengths":["..."],"suggestions":["..."]},{"title":"Section 4 — Requirements","strengths":["..."],"suggestions":["..."]},{"title":"Section 5 — Acceptance Criteria","strengths":["..."],"suggestions":["..."]}]}
+{"sections":[{"title":"Problem Statement","strengths":["..."],"suggestions":["..."]},{"title":"Section 1 — Project Overview","strengths":["..."],"suggestions":["..."]},{"title":"Section 2 — Business Objectives","strengths":["..."],"suggestions":["..."]},{"title":"Section 3 — Project Scope","strengths":["..."],"suggestions":["..."]},{"title":"Section 4 — Requirements","strengths":["..."],"suggestions":["..."]},{"title":"Section 5 — Acceptance Criteria","strengths":["..."],"suggestions":["..."]}]};
+
   try {
     const r = await fetch('/api/chat', {
       method: 'POST',
