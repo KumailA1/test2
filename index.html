@@ -1029,31 +1029,39 @@ async function sendMsg() {
   inp.focus();
 }
 
-async function submitBRD() {
-  goTo('s-loading');
+Async function submitBRD() {
   const brd = {
-    problem: document.getElementById('problemStmt').value,
-    s1: document.getElementById('brd1').value,
-    s2: document.getElementById('brd2').value,
-    s3in: document.getElementById('brd3in').value,
-    s3out: document.getElementById('brd3out').value,
-    s4biz: document.getElementById('brd4biz').value,
-    s4func: document.getElementById('brd4func').value,
-    s5: document.getElementById('brd5').value
+    problem: document.getElementById('problemStmt').value || '(not filled)',
+    s1: document.getElementById('brd1').value || '(not filled)',
+    s2: document.getElementById('brd2').value || '(not filled)',
+    s3in: document.getElementById('brd3in').value || '(not filled)',
+    s3out: document.getElementById('brd3out').value || '(not filled)',
+    s4biz: document.getElementById('brd4biz').value || '(not filled)',
+    s4func: document.getElementById('brd4func').value || '(not filled)',
+    s5: document.getElementById('brd5').value || '(not filled)'
   };
+
+  console.log('BRD Data:', brd);
+
+  goTo('s-loading');
 
   const prompt = `You are an experienced Business Analysis educator reviewing a trainee's BRD for the Veltra Logistics delivery delay project.
 
-PROBLEM STATEMENT: ${brd.problem || '(not filled)'}
-SECTION 1 — PROJECT OVERVIEW: ${brd.s1 || '(not filled)'}
-SECTION 2 — BUSINESS OBJECTIVES: ${brd.s2 || '(not filled)'}
-SECTION 3 — IN SCOPE: ${brd.s3in || '(not filled)'}
-SECTION 3 — OUT OF SCOPE: ${brd.s3out || '(not filled)'}
-SECTION 4 — BUSINESS REQUIREMENTS: ${brd.s4biz || '(not filled)'}
-SECTION 4 — FUNCTIONAL REQUIREMENTS: ${brd.s4func || '(not filled)'}
-SECTION 5 — ACCEPTANCE CRITERIA: ${brd.s5 || '(not filled)'}
+Here is exactly what the trainee wrote — evaluate ONLY based on this content:
 
-Provide section-by-section feedback. Tone: professional, encouraging, supportive. Do NOT give ready answers. For each section provide 2-3 strengths and 2-3 suggestions. Always respond in English only.
+PROBLEM STATEMENT: ${brd.problem}
+SECTION 1 — PROJECT OVERVIEW: ${brd.s1}
+SECTION 2 — BUSINESS OBJECTIVES: ${brd.s2}
+SECTION 3 — IN SCOPE: ${brd.s3in}
+SECTION 3 — OUT OF SCOPE: ${brd.s3out}
+SECTION 4 — BUSINESS REQUIREMENTS: ${brd.s4biz}
+SECTION 4 — FUNCTIONAL REQUIREMENTS: ${brd.s4func}
+SECTION 5 — ACCEPTANCE CRITERIA: ${brd.s5}
+
+Provide section-by-section feedback based strictly on what the trainee wrote above.
+Tone: professional, encouraging, supportive. Do NOT give ready answers.
+For each section provide 2-3 strengths and 2-3 suggestions based on the actual content.
+Always respond in English only.
 Respond ONLY with valid JSON, no markdown, no preamble:
 {"sections":[{"title":"Problem Statement","strengths":["..."],"suggestions":["..."]},{"title":"Section 1 — Project Overview","strengths":["..."],"suggestions":["..."]},{"title":"Section 2 — Business Objectives","strengths":["..."],"suggestions":["..."]},{"title":"Section 3 — Project Scope","strengths":["..."],"suggestions":["..."]},{"title":"Section 4 — Requirements","strengths":["..."],"suggestions":["..."]},{"title":"Section 5 — Acceptance Criteria","strengths":["..."],"suggestions":["..."]}]}`;
 
@@ -1063,7 +1071,7 @@ Respond ONLY with valid JSON, no markdown, no preamble:
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1000,
+        max_tokens: 2000,
         messages: [{ role: 'user', content: prompt }]
       })
     });
