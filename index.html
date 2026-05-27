@@ -1043,6 +1043,8 @@ async function submitBRD() {
 
   console.log('BRD Data:', brd);
 
+  goTo('s-loading');
+  
   const prompt = `You are an experienced Business Analysis educator reviewing a trainee's BRD for the Veltra Logistics delivery delay project.
 
 Here is exactly what the trainee wrote — evaluate ONLY based on this content:
