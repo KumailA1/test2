@@ -1058,13 +1058,16 @@ SECTION 4 — BUSINESS REQUIREMENTS: ${brd.s4biz}
 SECTION 4 — FUNCTIONAL REQUIREMENTS: ${brd.s4func}
 SECTION 5 — ACCEPTANCE CRITERIA: ${brd.s5}
 
-Provide section-by-section feedback based strictly on what the trainee wrote above.
-Tone: professional, encouraging, supportive. Do NOT give ready answers.
-For each section provide 2-3 strengths and 2-3 suggestions based on the actual content.
-Always respond in English only.
-Respond ONLY with valid JSON, no markdown, no preamble:
-{"sections":[{"title":"Problem Statement","strengths":["..."],"suggestions":["..."]},{"title":"Section 1 — Project Overview","strengths":["..."],"suggestions":["..."]},{"title":"Section 2 — Business Objectives","strengths":["..."],"suggestions":["..."]},{"title":"Section 3 — Project Scope","strengths":["..."],"suggestions":["..."]},{"title":"Section 4 — Requirements","strengths":["..."],"suggestions":["..."]},{"title":"Section 5 — Acceptance Criteria","strengths":["..."],"suggestions":["..."]}]}`;
+Provide section-by-section feedback based STRICTLY on what the trainee actually wrote.
 
+IMPORTANT RULES:
+- If a section says "(not filled)" or is empty, do NOT praise it. Instead, in Strengths write ["This section was not completed."] and in Suggestions explain what should be written in this section and why it matters — without giving the exact answer.
+- If a section has content, evaluate ONLY what was actually written. Do not assume or add things the trainee did not write.
+- Tone: professional, encouraging, supportive. Do NOT give the ready answer.
+- Always respond in English only.
+
+Respond ONLY with valid JSON, no markdown, no preamble:
+{"sections":[{"title":"Problem Statement","strengths":["..."],"suggestions":["..."]},{"title":"Section 1 — Project Overview","strengths":["..."],"suggestions":["..."]},{"title":"Section 2 — Business Objectives","strengths":["..."],"suggestions":["..."]},{"title":"Section 3 — Project Scope","strengths":["..."],"suggestions":["..."]},{"title":"Section 4 — Requirements","strengths":["..."],"suggestions":["..."]},{"title":"Section 5 — Acceptance Criteria","strengths":["..."],"suggestions":["..."]}]}
   try {
     const r = await fetch('/api/chat', {
       method: 'POST',
