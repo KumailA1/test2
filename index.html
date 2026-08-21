@@ -1,0 +1,1485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BRD Simulation — Veltra Logistics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/dist/tabler-icons.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script type="text/javascript">
+  (function(c,l,a,r,i,t,y){
+      c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments) };
+      t=l.createElement(r); t.async=1; t.src="https://www.clarity.ms/tag/"+i;
+      y=l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t,y);
+  })(window, document, "clarity", "script", "y63815ucev");
+</script>
+<style>
+:root {
+  --green: #1D9E75;
+  --green-dark: #0F6E56;
+  --green-light: #E1F5EE;
+  --green-text: #085041;
+  --amber: #854F0B;
+  --amber-light: #FAEEDA;
+  --blue-light: #E6F1FB;
+  --blue-text: #0C447C;
+  --red-light: #FCEBEB;
+  --red-text: #A32D2D;
+  --bg: #FAFAFA;
+  --bg2: #F3F4F6;
+  --bg3: #EAECEF;
+  --border: #E4E7EB;
+  --border2: #CDD1D8;
+  --text1: #111318;
+  --text2: #4B5563;
+  --text3: #9CA3AF;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.1), 0 2px 4px rgba(0,0,0,.06);
+  --radius: 10px;
+  --radius-sm: 6px;
+  --radius-lg: 14px;
+  --font: 'DM Sans', sans-serif;
+  --mono: 'DM Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text1);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 24px; height: 54px;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 50;
+}
+.topbar-brand {
+  display: flex; align-items: center; gap: 9px;
+  font-size: 13.5px; font-weight: 600; color: var(--text1);
+  letter-spacing: -.01em;
+}
+.brand-icon {
+  width: 30px; height: 30px; background: var(--green);
+  border-radius: 8px; display: flex; align-items: center;
+  justify-content: center; color: #fff; font-size: 15px;
+}
+.topbar-sep { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+.topbar-step { font-size: 12px; color: var(--text3); font-weight: 400; }
+.prog-wrap {
+  flex: 1; max-width: 180px; margin-left: auto;
+  height: 3px; background: var(--bg3); border-radius: 2px; overflow: hidden;
+}
+.prog-fill {
+  height: 100%; background: var(--green); border-radius: 2px;
+  transition: width .5s cubic-bezier(.4,0,.2,1);
+}
+
+/* ── SCREENS ── */
+.screen { display: none; flex-direction: column; flex: 1; }
+.screen.active { display: flex; }
+
+.page {
+  flex: 1; padding: 44px 24px 36px;
+  max-width: 680px; width: 100%; margin: 0 auto;
+  display: flex; flex-direction: column;
+}
+
+/* ── FOOTER ── */
+.footer {
+  padding: 16px 24px; border-top: 1px solid var(--border);
+  text-align: center; font-size: 12px; color: var(--text3);
+  background: #fff;
+}
+.footer a { color: var(--text2); text-decoration: none; font-weight: 500; }
+.footer a:hover { color: var(--text1); }
+
+/* ── PILLS ── */
+.pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 600; letter-spacing: .07em;
+  text-transform: uppercase; padding: 4px 11px;
+  border-radius: 20px; margin-bottom: 20px;
+}
+.pill-teal { background: var(--green-light); color: var(--green-text); }
+.pill-blue { background: var(--blue-light); color: var(--blue-text); }
+.pill-amber { background: var(--amber-light); color: var(--amber); }
+
+/* ── TYPOGRAPHY ── */
+h1.title {
+  font-size: 28px; font-weight: 600; color: var(--text1);
+  line-height: 1.2; margin-bottom: 12px; letter-spacing: -.02em;
+}
+h1.title span { color: var(--green); }
+p.lead {
+  font-size: 15px; color: var(--text2); line-height: 1.75;
+  margin-bottom: 26px; font-weight: 300;
+}
+
+/* ── CARDS ── */
+.card {
+  background: #fff; border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 20px 24px;
+  margin-bottom: 14px; box-shadow: var(--shadow);
+}
+
+/* ── FORM ── */
+.field-label {
+  display: block; font-size: 11.5px; font-weight: 600;
+  color: var(--text2); text-transform: uppercase;
+  letter-spacing: .07em; margin-bottom: 9px;
+}
+input[type=text], textarea {
+  width: 100%; font-size: 15px; font-family: var(--font);
+  padding: 11px 15px; border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: var(--bg); color: var(--text1);
+  transition: border-color .2s, box-shadow .2s;
+  resize: vertical;
+}
+input[type=text]:focus, textarea:focus {
+  outline: none; border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(29,158,117,.12);
+  background: #fff;
+}
+textarea { min-height: 140px; line-height: 1.65; }
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 22px; font-size: 14px; font-weight: 500;
+  border-radius: var(--radius); cursor: pointer;
+  border: 1px solid var(--border2); background: #fff;
+  color: var(--text1); font-family: var(--font);
+  transition: all .15s; box-shadow: var(--shadow);
+}
+.btn:hover { background: var(--bg2); border-color: var(--border2); }
+.btn:active { transform: scale(.98); }
+.btn-primary {
+  background: var(--green); color: #fff;
+  border-color: var(--green); box-shadow: 0 1px 3px rgba(29,158,117,.35);
+}
+.btn-primary:hover { background: var(--green-dark); border-color: var(--green-dark); }
+.btn-ghost { border-color: transparent; background: transparent; box-shadow: none; }
+.btn-ghost:hover { background: var(--bg2); border-color: var(--border); }
+.btn-row { display: flex; align-items: center; gap: 10px; margin-top: 24px; flex-wrap: wrap; }
+
+/* ── DATETIME BADGE ── */
+.dt-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 7px 13px;
+  font-size: 13px; color: var(--text2); margin: 6px 0 10px;
+  font-family: var(--mono); font-weight: 400;
+}
+.dt-badge i { color: var(--green); font-size: 15px; }
+
+/* ── STATS ── */
+.stat-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 22px; }
+.stat {
+  background: #fff; border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 16px;
+  box-shadow: var(--shadow);
+}
+.stat-val { font-size: 21px; font-weight: 600; margin-bottom: 3px; letter-spacing: -.02em; }
+.stat-val.red { color: #B91C1C; }
+.stat-val.amber { color: #92400E; }
+.stat-label { font-size: 11px; color: var(--text3); font-weight: 400; }
+
+/* ── EMAIL ── */
+.email-wrap {
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  overflow: hidden; margin-bottom: 22px; box-shadow: var(--shadow);
+}
+.email-head { background: var(--bg2); padding: 15px 20px; border-bottom: 1px solid var(--border); }
+.email-subject { font-size: 15px; font-weight: 600; color: var(--text1); margin-bottom: 5px; }
+.email-meta { font-size: 12px; color: var(--text2); line-height: 1.9; }
+.email-body { padding: 20px 22px; font-size: 14px; line-height: 1.85; color: var(--text1); }
+.email-body p { margin-bottom: 12px; }
+.email-body ul { padding-left: 20px; margin-bottom: 12px; }
+.email-body li { margin-bottom: 4px; }
+.email-sig { margin-top: 18px; padding-top: 15px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text2); line-height: 1.8; }
+
+/* ── NOTICE ── */
+.notice-box {
+  background: #FFFBEB; border: 1px solid #FDE68A;
+  border-radius: var(--radius); padding: 14px 17px;
+  display: flex; gap: 11px; align-items: flex-start; margin-bottom: 22px;
+}
+.notice-box i { color: #D97706; font-size: 18px; margin-top: 1px; flex-shrink: 0; }
+.notice-text { font-size: 13.5px; color: var(--text1); line-height: 1.65; }
+
+/* ── CONSIDER BOX ── */
+.consider-box {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 18px;
+  margin-bottom: 16px;
+}
+.consider-box ul { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+.consider-box li {
+  font-size: 13.5px; color: var(--text2); padding-left: 16px;
+  position: relative; line-height: 1.5;
+}
+.consider-box li::before { content: '·'; position: absolute; left: 0; color: var(--green); font-weight: 700; font-size: 16px; line-height: 1.3; }
+
+/* ── STAKEHOLDER GRID ── */
+.sh-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 12px; margin-bottom: 24px; }
+.sh-card {
+  background: #fff; border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 18px;
+  cursor: pointer; transition: border-color .2s, box-shadow .2s;
+  box-shadow: var(--shadow);
+}
+.sh-card:hover { border-color: var(--green); box-shadow: 0 4px 12px rgba(29,158,117,.12); }
+.sh-card.done { border-color: #5DCAA5; }
+.sh-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; margin-bottom: 11px;
+}
+.sh-name { font-size: 14px; font-weight: 600; color: var(--text1); margin-bottom: 2px; }
+.sh-role { font-size: 12px; color: var(--text2); margin-bottom: 8px; }
+.sh-desc { font-size: 12px; color: var(--text3); line-height: 1.5; }
+.sh-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10.5px; padding: 3px 9px; border-radius: 20px;
+  margin-top: 10px; font-weight: 600; letter-spacing: .03em;
+}
+.sh-tag-new { background: var(--bg2); color: var(--text3); }
+.sh-tag-done { background: var(--green-light); color: var(--green-text); }
+
+/* ── CHAT MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.3);
+  display: none; align-items: center; justify-content: center;
+  padding: 20px; z-index: 100; backdrop-filter: blur(2px);
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: #fff; border: 1px solid var(--border);
+  border-radius: var(--radius-lg); width: 100%; max-width: 540px;
+  display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: var(--shadow-md); max-height: 90vh;
+}
+.modal-head {
+  padding: 14px 18px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg);
+}
+.modal-person { display: flex; align-items: center; gap: 11px; }
+.modal-av {
+  width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600;
+}
+.modal-name { font-size: 14px; font-weight: 600; color: var(--text1); }
+.modal-role-sm { font-size: 12px; color: var(--text2); }
+.modal-close {
+  background: none; border: none; cursor: pointer;
+  color: var(--text3); font-size: 20px; padding: 2px;
+  border-radius: var(--radius-sm); transition: color .15s, background .15s;
+}
+.modal-close:hover { color: var(--text1); background: var(--bg2); }
+.chat-msgs {
+  flex: 1; overflow-y: auto; padding: 16px;
+  display: flex; flex-direction: column; gap: 11px;
+  min-height: 240px; max-height: 320px;
+}
+.msg {
+  max-width: 82%; padding: 10px 14px;
+  border-radius: 15px; font-size: 13.5px;
+  line-height: 1.6; word-break: break-word;
+}
+.msg-them {
+  background: var(--bg2); color: var(--text1);
+  align-self: flex-start; border-bottom-left-radius: 4px;
+}
+.msg-me {
+  background: var(--green); color: #fff;
+  align-self: flex-end; border-bottom-right-radius: 4px;
+}
+.msg-thinking { opacity: .6; font-style: italic; font-size: 13px; }
+.chat-foot {
+  padding: 12px 16px; border-top: 1px solid var(--border);
+  display: flex; gap: 9px; background: var(--bg);
+}
+.chat-input {
+  flex: 1; font-size: 13.5px; font-family: var(--font);
+  padding: 9px 13px; border-radius: var(--radius);
+  border: 1px solid var(--border2); background: #fff;
+  color: var(--text1); resize: none; max-height: 90px;
+  transition: border-color .2s;
+}
+.chat-input:focus { outline: none; border-color: var(--green); }
+.chat-send {
+  background: var(--green); color: #fff; border: none;
+  padding: 9px 15px; border-radius: var(--radius);
+  cursor: pointer; font-size: 15px; flex-shrink: 0;
+  transition: background .15s;
+}
+.chat-send:hover { background: var(--green-dark); }
+.chat-send:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ── BRD SECTIONS ── */
+.brd-section { margin-bottom: 24px; }
+.brd-sec-title { font-size: 15.5px; font-weight: 600; color: var(--text1); margin-bottom: 4px; }
+.brd-sec-desc { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 11px; }
+
+/* ── BRD INTRO LIST ── */
+.brd-list {
+  list-style: none; padding: 0;
+  display: flex; flex-direction: column; gap: 7px;
+}
+.brd-list li {
+  font-size: 13.5px; color: var(--text2);
+  padding-left: 16px; position: relative; line-height: 1.5;
+}
+.brd-list li::before {
+  content: '·'; position: absolute; left: 0;
+  color: var(--green); font-weight: 700; font-size: 18px; line-height: 1.2;
+}
+
+/* ── GUIDE ACCORDION ── */
+.guide-acc {
+  background: #fff; border: 1px solid var(--border);
+  border-radius: var(--radius-lg); margin-bottom: 12px;
+  overflow: hidden; box-shadow: var(--shadow);
+}
+.guide-acc summary {
+  cursor: pointer; list-style: none; padding: 16px 20px;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 14.5px; font-weight: 600; color: var(--text1);
+  user-select: none;
+}
+.guide-acc summary::-webkit-details-marker { display: none; }
+.guide-acc summary i.gicon { color: var(--green); font-size: 17px; flex-shrink: 0; }
+.guide-acc summary .chev { margin-left: auto; color: var(--text3); transition: transform .2s; font-size: 16px; flex-shrink: 0; }
+.guide-acc[open] summary .chev { transform: rotate(180deg); }
+.guide-acc[open] summary { border-bottom: 1px solid var(--border); }
+.guide-body { padding: 16px 20px 18px; font-size: 13.5px; color: var(--text2); line-height: 1.7; }
+.guide-body > p { margin-bottom: 10px; }
+.guide-body > p:last-child { margin-bottom: 0; }
+
+.guide-item { margin-bottom: 16px; }
+.guide-item:last-child { margin-bottom: 0; }
+.gi-title { font-size: 13.5px; font-weight: 600; color: var(--text1); margin-bottom: 4px; }
+.gi-desc { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 6px; }
+.gi-tip {
+  font-size: 12px; color: var(--green-text); background: var(--green-light);
+  padding: 6px 10px; border-radius: 6px; display: inline-block; line-height: 1.5;
+}
+
+.gs-card {
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px 16px; margin-bottom: 12px; background: var(--bg);
+}
+.gs-card:last-child { margin-bottom: 0; }
+.gs-head { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+.gs-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; flex-shrink: 0;
+}
+.gs-name { font-size: 13.5px; font-weight: 600; color: var(--text1); }
+.gs-role { font-size: 11.5px; color: var(--text2); }
+.gs-resp { font-size: 12.5px; color: var(--text2); line-height: 1.6; margin-bottom: 10px; }
+.gs-q-title {
+  font-size: 10.5px; font-weight: 700; color: var(--text3);
+  text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px;
+}
+.gs-q-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.gs-q-list li {
+  font-size: 12.5px; color: var(--text1); padding-left: 15px;
+  position: relative; line-height: 1.5;
+}
+.gs-q-list li::before {
+  content: '?'; position: absolute; left: 0; top: 0;
+  color: var(--green); font-weight: 700; font-size: 12px;
+}
+
+/* ── LOADING ── */
+.loading-screen {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 16px; min-height: 400px;
+}
+.spinner {
+  width: 34px; height: 34px;
+  border: 2.5px solid var(--border2); border-top-color: var(--green);
+  border-radius: 50%; animation: spin .75s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── FEEDBACK ── */
+.fb-wrap { display: flex; flex-direction: column; gap: 14px; margin-bottom: 26px; }
+.fb-card {
+  background: #fff; border: 1px solid var(--border);
+  border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow);
+}
+.fb-card-head {
+  padding: 13px 18px; border-bottom: 1px solid var(--border);
+  font-size: 14px; font-weight: 600; color: var(--text1);
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg);
+}
+.fb-card-body {
+  padding: 16px 18px; display: grid;
+  grid-template-columns: 1fr 1fr; gap: 16px;
+}
+.fb-col-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .07em; margin-bottom: 9px;
+  display: flex; align-items: center; gap: 5px;
+}
+.col-strengths .fb-col-title { color: var(--green-dark); }
+.col-suggestions .fb-col-title { color: var(--amber); }
+.fb-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.fb-list li {
+  font-size: 13px; color: var(--text1); line-height: 1.55;
+  padding-left: 13px; position: relative;
+}
+.col-strengths .fb-list li::before { content: '•'; position: absolute; left: 0; color: var(--green); }
+.col-suggestions .fb-list li::before { content: '•'; position: absolute; left: 0; color: #D97706; }
+
+/* ── SOLUTION ── */
+.divider { height: 1px; background: var(--border); margin: 26px 0; }
+.solution-wrap {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 22px 24px;
+  font-size: 14px; line-height: 1.8; color: var(--text1); margin-top: 14px;
+}
+.solution-wrap h3 {
+  font-size: 11.5px; font-weight: 700; color: var(--green-dark);
+  text-transform: uppercase; letter-spacing: .07em;
+  margin: 18px 0 7px;
+}
+.solution-wrap h3:first-child { margin-top: 0; }
+.solution-wrap ul { padding-left: 18px; margin-bottom: 8px; }
+.solution-wrap li { margin-bottom: 4px; }
+.solution-note {
+  margin-top: 16px; font-size: 12px; color: var(--text3);
+  padding-top: 14px; border-top: 1px solid var(--border);
+}
+
+/* ── END SCREEN ── */
+.end-wrap {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center; padding: 40px 24px; min-height: 460px;
+}
+.end-icon {
+  width: 68px; height: 68px; background: var(--green-light);
+  border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; color: var(--green); font-size: 28px;
+  margin-bottom: 20px; box-shadow: 0 0 0 8px rgba(29,158,117,.08);
+}
+.li-btn {
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 12px 24px; background: #0A66C2; color: #fff;
+  border: none; border-radius: var(--radius); cursor: pointer;
+  font-size: 14px; font-weight: 600; font-family: var(--font);
+  text-decoration: none; margin-top: 22px;
+  transition: background .15s; box-shadow: 0 2px 8px rgba(10,102,194,.3);
+}
+.li-btn:hover { background: #004182; }
+
+/* ── INBOX CARD ── */
+.inbox-card {
+  display: flex; align-items: center; gap: 15px;
+  cursor: pointer; transition: box-shadow .2s, border-color .2s;
+}
+.inbox-card:hover { border-color: var(--green); box-shadow: 0 4px 12px rgba(29,158,117,.1); }
+.inbox-icon {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: var(--red-light); display: flex;
+  align-items: center; justify-content: center;
+  color: var(--red-text); font-size: 18px; flex-shrink: 0;
+}
+.inbox-title { font-size: 14px; font-weight: 600; color: var(--text1); margin-bottom: 3px; }
+.inbox-from { font-size: 12px; color: var(--text2); }
+.urgent-tag {
+  margin-left: auto; flex-shrink: 0;
+  font-size: 10.5px; padding: 3px 9px;
+  background: var(--red-light); color: var(--red-text);
+  border-radius: 20px; font-weight: 600;
+}
+
+@media (max-width: 540px) {
+  .page { padding: 28px 16px 24px; }
+  .sh-grid { grid-template-columns: 1fr 1fr; }
+  h1.title { font-size: 24px; }
+  .stat-row { grid-template-columns: 1fr 1fr; }
+  .fb-card-body { grid-template-columns: 1fr; }
+  .topbar { padding: 0 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="brand-icon"><i class="ti ti-file-description"></i></div>
+    BRD Simulation
+  </div>
+  <div class="topbar-sep"></div>
+  <div class="topbar-step" id="topStep"></div>
+  <div class="prog-wrap" id="progWrap" style="display:none">
+    <div class="prog-fill" id="progFill" style="width:0%"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SCREEN: WELCOME                             -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="screen active" id="s-welcome">
+  <div class="page" style="justify-content:center;min-height:540px">
+    <div style="margin:auto 0">
+      <div class="pill pill-teal"><i class="ti ti-briefcase"></i> Business Analysis</div>
+      <h1 class="title">Welcome to the<br><span>BRD Simulation</span></h1>
+      <p class="lead">Experience a realistic Business Analysis scenario. Communicate with stakeholders, gather requirements, and create a professional BRD.</p>
+      <div class="card">
+        <label class="field-label" for="userName">Enter your name</label>
+        <input type="text" id="userName" placeholder="Your name..." maxlength="50"
+          onkeydown="if(event.key==='Enter') startSim()"/>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="startSim()">
+          Start Simulation <i class="ti ti-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="footer">Built by <a href="https://www.linkedin.com/in/kumail-alhuwayji" target="_blank">Kumail Alhuwayji</a></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SCREEN: GUIDE                                -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="screen" id="s-guide">
+  <div class="page">
+    <div class="pill pill-teal"><i class="ti ti-info-circle"></i> Quick guide</div>
+    <h1 class="title">New to BRDs? Start here</h1>
+    <p class="lead">A short guide before you begin: what a BRD is, what to write in each section, and who you are about to interview. Skip it anytime if you are already familiar with this.</p>
+
+    <details class="guide-acc" open>
+      <summary><i class="ti ti-info-circle gicon"></i> What is a BRD? <i class="ti ti-chevron-down chev"></i></summary>
+      <div class="guide-body">
+        <p>A Business Requirements Document (BRD) is a formal document that captures what the business needs from a project, and why, before anyone starts designing a solution. It is written by a Business Analyst after gathering information from stakeholders, and it becomes the shared reference that guides design, development, and testing.</p>
+        <p>A good BRD focuses on the "what" and "why," not the "how." It should be clear enough that someone who was not part of your interviews can still understand the problem, the goals, and what success looks like.</p>
+      </div>
+    </details>
+
+    <details class="guide-acc">
+      <summary><i class="ti ti-list-check gicon"></i> How to write each section <i class="ti ti-chevron-down chev"></i></summary>
+      <div class="guide-body">
+        <div class="guide-item">
+          <div class="gi-title">Problem Statement</div>
+          <div class="gi-desc">A short, clear statement of what is going wrong, who is affected, and why it matters to the business. This is not the solution, just the problem, in plain language.</div>
+          <div class="gi-tip">Tip: answer in order. What is happening? Who does it affect? What is the impact?</div>
+        </div>
+        <div class="guide-item">
+          <div class="gi-title">1. Project Overview</div>
+          <div class="gi-desc">Brief background: the company, the situation that led to this project, and the context a reader needs before the rest of the document.</div>
+          <div class="gi-tip">Tip: no requirements yet, just set the scene in a few sentences.</div>
+        </div>
+        <div class="guide-item">
+          <div class="gi-title">2. Business Objectives</div>
+          <div class="gi-desc">The high-level outcomes the business wants to achieve, not features or system behavior. Each objective describes a result.</div>
+          <div class="gi-tip">Tip: start each line with a verb, like "Reduce...", "Improve...", or "Increase...", and make it measurable if you can.</div>
+        </div>
+        <div class="guide-item">
+          <div class="gi-title">3. In Scope</div>
+          <div class="gi-desc">The processes, systems, and areas this project will actually address.</div>
+          <div class="gi-tip">Tip: base this on what stakeholders described as part of the problem, not everything they mentioned.</div>
+        </div>
+        <div class="guide-item">
+          <div class="gi-title">3. Out of Scope</div>
+          <div class="gi-desc">What is explicitly excluded, so expectations are clear from the start.</div>
+          <div class="gi-tip">Tip: always list at least two or three items here, even if nobody asked. It protects the project from scope creep.</div>
+        </div>
+        <div class="guide-item">
+          <div class="gi-title">4. Business Requirements</div>
+          <div class="gi-desc">What the business needs, from a business perspective, focused on outcomes rather than system features.</div>
+          <div class="gi-tip">Tip: start each line with "The business requires..."</div>
+        </div>
+        <div class="guide-item">
+          <div class="gi-title">4. Functional Requirements</div>
+          <div class="gi-desc">What the system should actually do to meet those business needs, specific and testable capabilities.</div>
+          <div class="gi-tip">Tip: start each line with "The system shall..." or "The system should..."</div>
+        </div>
+        <div class="guide-item">
+          <div class="gi-title">5. Acceptance Criteria</div>
+          <div class="gi-desc">How you will know the project succeeded, measurable, ideally with numbers and timeframes.</div>
+          <div class="gi-tip">Tip: turn each objective into a target, e.g. "Average delay reduced by at least 25% within 3 months."</div>
+        </div>
+      </div>
+    </details>
+
+    <details class="guide-acc">
+      <summary><i class="ti ti-users gicon"></i> Meet the stakeholders <i class="ti ti-chevron-down chev"></i></summary>
+      <div class="guide-body">
+        <p style="margin-bottom:14px">You will interview five people. Each one only knows part of the picture, so plan to speak with more than one to get a full view of the problem.</p>
+
+        <div class="gs-card">
+          <div class="gs-head">
+            <div class="gs-avatar" style="background:#E1F5EE;color:#085041">SW</div>
+            <div><div class="gs-name">Sarah Walid</div><div class="gs-role">Operations Manager</div></div>
+          </div>
+          <div class="gs-resp">Oversees daily delivery operations, driver assignments, and dispatching. Focused on efficiency and bottlenecks.</div>
+          <div class="gs-q-title">Sample questions</div>
+          <ul class="gs-q-list">
+            <li>How are driver assignments handled during peak hours?</li>
+            <li>What visibility do you have into delivery status in real time?</li>
+            <li>Where do you see the biggest bottlenecks in the process?</li>
+          </ul>
+        </div>
+
+        <div class="gs-card">
+          <div class="gs-head">
+            <div class="gs-avatar" style="background:#E6F1FB;color:#0C447C">OK</div>
+            <div><div class="gs-name">Omar Khalid</div><div class="gs-role">Customer Support Lead</div></div>
+          </div>
+          <div class="gs-resp">Handles customer complaints and escalations, and tracks recurring issues coming from delivery delays.</div>
+          <div class="gs-q-title">Sample questions</div>
+          <ul class="gs-q-list">
+            <li>What do customers complain about most often?</li>
+            <li>How does your team find out a delivery's current status?</li>
+            <li>What information would help you respond to customers faster?</li>
+          </ul>
+        </div>
+
+        <div class="gs-card">
+          <div class="gs-head">
+            <div class="gs-avatar" style="background:#FAEEDA;color:#633806">FS</div>
+            <div><div class="gs-name">Faisal Saad</div><div class="gs-role">Delivery Driver</div></div>
+          </div>
+          <div class="gs-resp">Delivers customer orders and reports issues from the field. Deals directly with routes and dispatch.</div>
+          <div class="gs-q-title">Sample questions</div>
+          <ul class="gs-q-list">
+            <li>How do you receive your delivery assignments?</li>
+            <li>What typically slows you down during a shift?</li>
+            <li>How do you communicate with dispatch when something goes wrong?</li>
+          </ul>
+        </div>
+
+        <div class="gs-card">
+          <div class="gs-head">
+            <div class="gs-avatar" style="background:#FBEAF0;color:#72243E">NB</div>
+            <div><div class="gs-name">Naser Bader</div><div class="gs-role">CEO</div></div>
+          </div>
+          <div class="gs-resp">Oversees business performance and strategy. Cares about reputation, customer trust, and measurable results.</div>
+          <div class="gs-q-title">Sample questions</div>
+          <ul class="gs-q-list">
+            <li>How are these delays affecting the business overall?</li>
+            <li>What would success look like to you?</li>
+            <li>Are there constraints I should keep in mind, like budget or timeline?</li>
+          </ul>
+        </div>
+
+        <div class="gs-card">
+          <div class="gs-head">
+            <div class="gs-avatar" style="background:#EAF3DE;color:#27500A">RF</div>
+            <div><div class="gs-name">Reem Fahd</div><div class="gs-role">Customer</div></div>
+          </div>
+          <div class="gs-resp">Not an employee. Speaks only from her own experience using the delivery service.</div>
+          <div class="gs-q-title">Sample questions</div>
+          <ul class="gs-q-list">
+            <li>Can you walk me through your most recent delivery experience?</li>
+            <li>What information did you wish you had while waiting?</li>
+            <li>What would it take to earn back your trust in the service?</li>
+          </ul>
+        </div>
+      </div>
+    </details>
+
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goTo('s-welcome')"><i class="ti ti-arrow-left"></i> Back</button>
+      <button class="btn btn-primary" onclick="goTo('s-inbox')">Continue <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </div>
+  <div class="footer">Built by <a href="https://www.linkedin.com/in/kumail-alhuwayji" target="_blank">Kumail Alhuwayji</a></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SCREEN: INBOX                               -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="screen" id="s-inbox">
+  <div class="page" style="justify-content:center;min-height:540px">
+    <div style="margin:auto 0">
+      <div class="pill pill-blue"><i class="ti ti-mail"></i> New message</div>
+      <h1 class="title">Welcome, <span id="displayName"></span></h1>
+      <p style="font-size:15px;color:var(--text2);line-height:2;margin-bottom:22px;font-weight:300">
+        You are now working as a Business Analyst at Veltra Logistics.<br>
+        <span class="dt-badge"><i class="ti ti-clock"></i> Monday — 8:12 AM</span><br>
+        You have received a new urgent email from the Operations Director.
+      </p>
+      <div class="card inbox-card" onclick="goTo('s-email')">
+        <div class="inbox-icon"><i class="ti ti-mail-opened"></i></div>
+        <div>
+          <div class="inbox-title">Urgent Investigation Required — Delivery Delays</div>
+          <div class="inbox-from">Abdullah Salem · Operations Director</div>
+        </div>
+        <div class="urgent-tag">Urgent</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="goTo('s-guide')"><i class="ti ti-info-circle"></i> View guide</button>
+        <button class="btn btn-primary" onclick="goTo('s-email')">
+          <i class="ti ti-mail-opened"></i> Open Email
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="footer">Built by <a href="https://www.linkedin.com/in/kumail-alhuwayji" target="_blank">Kumail Alhuwayji</a></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SCREEN: EMAIL                               -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="screen" id="s-email">
+  <div class="page">
+    <div class="pill pill-blue"><i class="ti ti-urgent"></i> Urgent email</div>
+    <h1 class="title" style="margin-bottom:20px">Incoming email</h1>
+    <div class="stat-row">
+      <div class="stat"><div class="stat-val red">+35%</div><div class="stat-label">Complaints increase</div></div>
+      <div class="stat"><div class="stat-val amber">28 min</div><div class="stat-label">Avg delay (peak)</div></div>
+      <div class="stat"><div class="stat-val red">82%→64%</div><div class="stat-label">Satisfaction drop</div></div>
+    </div>
+    <div class="email-wrap">
+      <div class="email-head">
+        <div class="email-subject">Urgent Investigation Required — Delivery Delays</div>
+        <div class="email-meta">
+          From: <strong>Abdullah Salem</strong> — Operations Director &nbsp;·&nbsp;
+          To: <strong id="emailTo"></strong> — Business Analyst
+        </div>
+      </div>
+      <div class="email-body">
+        <p>Good morning,</p>
+        <p>Over the past three months, Veltra Logistics has experienced a noticeable increase in delayed deliveries across multiple cities. Customer complaints related to delivery delays have increased by <strong>35%</strong>, and our average delivery delay has reached <strong>28 minutes</strong> during peak hours.</p>
+        <p>This issue is beginning to negatively affect customer satisfaction and overall operational performance. Recent reports show a drop from <strong>82% to 64%</strong> in satisfaction, and refund requests related to delayed orders are continuing to rise.</p>
+        <p>Management would like a clearer understanding of: what is causing these delays, how current delivery operations are functioning, and what improvements may be required.</p>
+        <p>You have been assigned to investigate the issue, communicate with the relevant stakeholders, and help identify potential business and operational requirements.</p>
+        <p>The following stakeholders are available for discussion:</p>
+        <ul>
+          <li>Sarah Walid — Operations Manager</li>
+          <li>Omar Khalid — Customer Support Lead</li>
+          <li>Faisal Saad — Delivery Driver</li>
+          <li>Naser Bader — CEO</li>
+          <li>Reem Fahd — Customer</li>
+        </ul>
+        <p>Please begin your investigation as soon as possible.</p>
+        <div class="email-sig">
+          <strong>Abdullah Salem</strong><br>
+          Operations Director, Veltra Logistics
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goTo('s-inbox')"><i class="ti ti-arrow-left"></i> Back</button>
+      <button class="btn btn-primary" onclick="goTo('s-notice')">Continue <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </div>
+  <div class="footer">Built by <a href="https://www.linkedin.com/in/kumail-alhuwayji" target="_blank">Kumail Alhuwayji</a></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SCREEN: NOTICE                              -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="screen" id="s-notice">
+  <div class="page" style="justify-content:center;min-height:540px">
+    <div style="margin:auto 0">
+      <div class="pill pill-amber"><i class="ti ti-info-circle"></i> Note</div>
+      <h1 class="title">Before you begin</h1>
+      <div class="notice-box">
+        <i class="ti ti-alert-triangle"></i>
+        <div class="notice-text">
+          This simulation does not currently save progress automatically.
+          If you refresh the page or leave the website, your work may be lost.
+          For the best experience, consider saving your notes or important responses
+          externally while completing the simulation.
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="goTo('s-email')"><i class="ti ti-arrow-left"></i> Back</button>
+        <button class="btn btn-primary" onclick="goTo('s-problem')">Got it, continue <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+  <div class="footer">Built by <a href="https://www.linkedin.com/in/kumail-alhuwayji" target="_blank">Kumail Alhuwayji</a></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SCREEN: PROBLEM STATEMENT                   -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="screen" id="s-problem">
+  <div class="page">
+    <div class="pill pill-teal"><i class="ti ti-pencil"></i> Step 1 of 6</div>
+    <h1 class="title">Write the problem statement</h1>
+    <p class="lead">Based on the email and the available information, write a clear problem statement describing the business issue.</p>
+    <div class="consider-box">
+      <ul>
+        <li>What is the problem?</li>
+        <li>Who is affected?</li>
+        <li>What is the business impact?</li>
+      </ul>
+    </div>
+    <textarea id="problemStmt" placeholder="Write your problem statement here..."></textarea>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goTo('s-notice')"><i class="ti ti-arrow-left"></i> Back</button>
+      <button class="btn btn-primary" onclick="goTo('s-stakeholders')">Continue <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </div>
+  <div class="footer">Built by <a href="https://www.linkedin.com/in/kumail-alhuwayji" target="_blank">Kumail Alhuwayji</a></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SCREEN: STAKEHOLDERS                        -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="screen" id="s-stakeholders">
+  <div class="page">
+    <div class="pill pill-teal"><i class="ti ti-users"></i> Step 2 of 6</div>
+    <h1 class="title">Stakeholder interviews</h1>
+    <p class="lead">Select each stakeholder to begin an interview. The quality of your questions determines what you learn.</p>
+    <div class="sh-grid" id="shGrid"></div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goTo('s-problem')"><i class="ti ti-arrow-left"></i> Back</button>
+      <button class="btn btn-primary" onclick="goTo('s-brd-intro')">Continue to BRD <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </div>
+  <div class="footer">Built by <a href="https://www.linkedin.com/in/kumail-alhuwayji" target="_blank">Kumail Alhuwayji</a></div>
+</div>
+
+<!-- CHAT MODAL -->
+<div class="modal-overlay" id="chatOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-person">
+        <div class="modal-av" id="mAv"></div>
+        <div>
+          <div class="modal-name" id="mName"></div>
+          <div class="modal-role-sm" id="mRole"></div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeChat()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="chat-msgs" id="chatMsgs"></div>
+    <div class="chat-foot">
+      <textarea class="chat-input" id="chatInput" placeholder="Ask a question..." rows="1"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"></textarea>
+      <button class="chat-send" id="sendBtn" onclick="sendMsg()"><i class="ti ti-send"></i></button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SCREEN: BRD INTRO                           -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="screen" id="s-brd-intro">
+  <div class="page" style="justify-content:center;min-height:540px">
+    <div style="margin:auto 0">
+      <div class="pill pill-teal"><i class="ti ti-file-text"></i> BRD</div>
+      <h1 class="title">Build the <span>BRD</span></h1>
+      <p class="lead">Based on your stakeholder interviews and the information collected, you will now complete each section of the Business Requirements Document. Take your time, this is the core deliverable of your role.</p>
+      <div class="card">
+        <div style="display:flex;gap:13px;align-items:flex-start">
+          <div style="color:var(--green);font-size:22px;flex-shrink:0;margin-top:1px"><i class="ti ti-list-check"></i></div>
+          <div>
+            <div style="font-size:14px;font-weight:600;color:var(--text1);margin-bottom:10px">5 sections to complete</div>
+            <ul class="brd-list">
+              <li>Project Overview</li>
+              <li>Business Objectives</li>
+              <li>Project Scope</li>
+              <li>Requirements</li>
+              <li>Acceptance Criteria</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="goTo('s-stakeholders')"><i class="ti ti-arrow-left"></i> Back</button>
+        <button class="btn btn-primary" onclick="goTo('s-brd1')">Start building <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+  <div class="footer">Built by <a href="https://www.linkedin.com/in/kumail-alhuwayji" target="_blank">Kumail Alhuwayji</a></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SCREEN: BRD S1                              -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="screen" id="s-brd1">
+  <div class="page">
+    <div class="pill pill-teal"><i class="ti ti-file-text"></i> Section 1 of 5</div>
+    <h1 class="title">Project overview</h1>
+    <p class="lead">Briefly describe the company, the problem, and the reason behind the project.</p>
+    <textarea id="brd1" placeholder="Describe the company background, the business problem, and what prompted this project..."></textarea>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goTo('s-brd-intro')"><i class="ti ti-arrow-left"></i> Back</button>
+      <button class="btn btn-primary" onclick="goTo('s-brd2')">Continue <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </div>
+  <div class="footer">Built by <a href="https://www.linkedin.com/in/kumail-alhuwayji" target="_blank">Kumail Alhuwayji</a></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SCREEN: BRD S2                              -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="screen" id="s-brd2">
+  <div class="page">
+    <div class="pill pill-teal"><i class="ti ti-target"></i> Section 2 of 5</div>
+    <h1 class="title">Business objectives</h1>
+    <p class="lead">Define the business goals the company wants to achieve through this project.</p>
+    <textarea id="brd2" placeholder="List the key objectives the business wants to accomplish..."></textarea>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goTo('s-brd1')"><i class="ti ti-arrow-left"></i> Back</button>
+      <button class="btn btn-primary" onclick="goTo('s-brd3')">Continue <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </div>
+  <div class="footer">Built by <a href="https://www.linkedin.com/in/kumail-alhuwayji" target="_blank">Kumail Alhuwayji</a></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SCREEN: BRD S3                              -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="screen" id="s-brd3">
+  <div class="page">
+    <div class="pill pill-teal"><i class="ti ti-circle-dotted"></i> Section 3 of 5</div>
+    <h1 class="title">Project scope</h1>
+    <p class="lead">Define what is included and what falls outside the boundaries of this project.</p>
+    <div class="brd-section">
+      <div class="brd-sec-title">In scope</div>
+      <div class="brd-sec-desc">What processes, systems, and areas are covered by this project?</div>
+      <textarea id="brd3in" placeholder="List what is included in scope..." style="min-height:120px"></textarea>
+    </div>
+    <div class="brd-section">
+      <div class="brd-sec-title">Out of scope</div>
+      <div class="brd-sec-desc">What is explicitly excluded?</div>
+      <textarea id="brd3out" placeholder="List what is excluded from scope..." style="min-height:120px"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goTo('s-brd2')"><i class="ti ti-arrow-left"></i> Back</button>
+      <button class="btn btn-primary" onclick="goTo('s-brd4')">Continue <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </div>
+  <div class="footer">Built by <a href="https://www.linkedin.com/in/kumail-alhuwayji" target="_blank">Kumail Alhuwayji</a></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SCREEN: BRD S4                              -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="screen" id="s-brd4">
+  <div class="page">
+    <div class="pill pill-teal"><i class="ti ti-list-check"></i> Section 4 of 5</div>
+    <h1 class="title">Business &amp; functional requirements</h1>
+    <p class="lead">Define what the business needs, and what the system should do to meet those needs.</p>
+    <div class="brd-section">
+      <div class="brd-sec-title">Business requirements</div>
+      <div class="brd-sec-desc">What does the business need to achieve? (focus on outcomes)</div>
+      <textarea id="brd4biz" placeholder="The business requires..." style="min-height:120px"></textarea>
+    </div>
+    <div class="brd-section">
+      <div class="brd-sec-title">Functional requirements</div>
+      <div class="brd-sec-desc">What should the system do? (focus on capabilities)</div>
+      <textarea id="brd4func" placeholder="The system should..." style="min-height:120px"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goTo('s-brd3')"><i class="ti ti-arrow-left"></i> Back</button>
+      <button class="btn btn-primary" onclick="goTo('s-brd5')">Continue <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </div>
+  <div class="footer">Built by <a href="https://www.linkedin.com/in/kumail-alhuwayji" target="_blank">Kumail Alhuwayji</a></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SCREEN: BRD S5                              -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="screen" id="s-brd5">
+  <div class="page">
+    <div class="pill pill-teal"><i class="ti ti-checkbox"></i> Section 5 of 5</div>
+    <h1 class="title">Acceptance criteria</h1>
+    <p class="lead">Define how the success of the solution will be measured. Be specific, use numbers and timeframes where possible.</p>
+    <textarea id="brd5" placeholder="Describe measurable criteria that define project success..."></textarea>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goTo('s-brd4')"><i class="ti ti-arrow-left"></i> Back</button>
+      <button class="btn btn-primary" onclick="submitBRD()"><i class="ti ti-send"></i> Complete simulation</button>
+    </div>
+  </div>
+  <div class="footer">Built by <a href="https://www.linkedin.com/in/kumail-alhuwayji" target="_blank">Kumail Alhuwayji</a></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SCREEN: LOADING                             -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="screen" id="s-loading">
+  <div class="loading-screen">
+    <div class="spinner"></div>
+    <div style="font-size:15px;color:var(--text2);font-weight:500">Reviewing your BRD...</div>
+    <div style="font-size:13px;color:var(--text3)">Generating section-by-section feedback</div>
+  </div>
+  <div class="footer">Built by <a href="https://www.linkedin.com/in/kumail-alhuwayji" target="_blank">Kumail Alhuwayji</a></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SCREEN: FEEDBACK                            -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="screen" id="s-feedback">
+  <div class="page">
+    <div class="pill pill-teal"><i class="ti ti-star"></i> Feedback</div>
+    <h1 class="title">BRD review &amp; feedback</h1>
+    <p class="lead">Here is your personalized, section-by-section feedback. Use it to reflect and improve your analysis skills.</p>
+    <div class="fb-wrap" id="fbContent"></div>
+    <div class="divider"></div>
+    <button class="btn btn-primary" id="solBtn" onclick="showSolution()">
+      <i class="ti ti-eye"></i> View one possible solution
+    </button>
+    <div id="solArea" style="display:none"></div>
+    <div class="btn-row" style="margin-top:24px">
+      <button class="btn btn-primary" onclick="goTo('s-end')"><i class="ti ti-check"></i> End simulation</button>
+    </div>
+  </div>
+  <div class="footer">Built by <a href="https://www.linkedin.com/in/kumail-alhuwayji" target="_blank">Kumail Alhuwayji</a></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SCREEN: END                                 -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="screen" id="s-end">
+  <div class="end-wrap">
+    <div class="end-icon"><i class="ti ti-trophy"></i></div>
+    <div class="pill pill-teal" style="margin-bottom:14px"><i class="ti ti-check"></i> Simulation complete</div>
+    <h1 class="title" style="text-align:center">Thank you for completing<br>the simulation</h1>
+    <p class="lead" style="text-align:center;max-width:420px;margin:10px auto 0">
+      If you have suggestions, feedback, or ideas for future simulations,
+      feel free to connect on LinkedIn.
+    </p>
+    <a class="li-btn" href="https://www.linkedin.com/in/kumail-alhuwayji" target="_blank">
+      <i class="ti ti-brand-linkedin"></i> Connect — Kumail Alhuwayji
+    </a>
+    <p style="font-size:12.5px;color:var(--text3);margin-top:12px">
+      Your feedback can help improve future simulation experiences.
+    </p>
+  </div>
+  <div class="footer">Built by <a href="https://www.linkedin.com/in/kumail-alhuwayji" target="_blank">Kumail Alhuwayji</a></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- JAVASCRIPT                                  -->
+<!-- ═══════════════════════════════════════════ -->
+<script>
+// ── SUPABASE TRACKING ──
+const SUPABASE_URL = 'https://maioikuiqciiunmrjyvh.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_Cup6MjxeMFnzbuIbSRfAkQ_60PcfEtL';
+const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let sessionId = null;
+let lastScreenEventId = null;
+
+function genAnonId() {
+  return 'U-' + Math.random().toString(36).slice(2, 8).toUpperCase();
+}
+
+async function trackSessionStart() {
+  try {
+    const anonId = genAnonId();
+    const { data, error } = await sbClient
+      .from('sessions')
+      .insert({ user_name: anonId, last_screen: 's-guide' })
+      .select()
+      .single();
+    if (error) { console.error('Supabase session error:', error); return; }
+    sessionId = data.id;
+  } catch (e) { console.error('Supabase session error:', e); }
+}
+
+async function trackScreen(screen) {
+  if (!sessionId) return;
+  try {
+    const now = new Date().toISOString();
+    if (lastScreenEventId) {
+      await sbClient.from('screen_events')
+        .update({ end_at: now })
+        .eq('id', lastScreenEventId);
+    }
+    const { data, error } = await sbClient.from('screen_events')
+      .insert({ session_id: sessionId, screen, created_at: now })
+      .select('id')
+      .single();
+    if (!error && data) lastScreenEventId = data.id;
+    await sbClient.from('sessions')
+      .update({ last_screen: screen, last_active_at: now })
+      .eq('id', sessionId);
+  } catch (e) { console.error('Supabase screen error:', e); }
+}
+
+async function trackMessage(stakeholderName, content) {
+  if (!sessionId) return;
+  try {
+    await sbClient.from('stakeholder_messages').insert({
+      session_id: sessionId,
+      stakeholder_name: stakeholderName,
+      content
+    });
+  } catch (e) { console.error('Supabase message error:', e); }
+}
+
+async function trackBRDSubmission(brd) {
+  if (!sessionId) return;
+  try {
+    await sbClient.from('brd_submissions').insert({
+      session_id: sessionId,
+      problem_statement: brd.problem,
+      project_overview: brd.s1,
+      business_objectives: brd.s2,
+      in_scope: brd.s3in,
+      out_scope: brd.s3out,
+      business_requirements: brd.s4biz,
+      functional_requirements: brd.s4func,
+      acceptance_criteria: brd.s5
+    });
+    const allFilled = Object.values(brd).every(v => v && v.trim().length > 0);
+    await sbClient.from('sessions')
+      .update({ all_fields_answered: allFilled })
+      .eq('id', sessionId);
+  } catch (e) { console.error('Supabase BRD error:', e); }
+}
+
+async function trackCompletion() {
+  if (!sessionId) return;
+  try {
+    await sbClient.from('sessions')
+      .update({ completed: true, completed_at: new Date().toISOString() })
+      .eq('id', sessionId);
+  } catch (e) { console.error('Supabase completion error:', e); }
+}
+
+const SH = [
+  {
+    id: 'sarah', initials: 'SW', name: 'Sarah Walid', role: 'Operations Manager',
+    desc: 'Overseeing delivery operations and driver assignments.',
+    bg: '#E1F5EE', fg: '#085041',
+    system: `You are Sarah Walid, the Operations Manager at Veltra Logistics. Project Context: Veltra Logistics is experiencing increased delivery delays. Complaints increased 35%, average delay 28 min peak hours, satisfaction dropped 82% to 64%. Your Responsibilities: Oversee daily delivery operations. Manage driver assignments and dispatching. Monitor efficiency and delivery performance. Identify bottlenecks. Personality: Direct. Busy. Practical. Focused on KPIs. Sometimes defensive when operations are blamed. What You Know: Driver assignments still handled manually. Peak hours create major pressure. Some routes not optimized. Drivers call dispatchers to clarify assignments. Limited real-time visibility. What You Do Not Know: Customer emotions or complaint wording. Full financial impact. Technical architecture. CEO-level strategy. Rules: Speak naturally like a real Operations Manager. Only discuss delivery delay topics. Do not provide ready-made business requirements. Do not suggest a complete solution. Do not say "the system shall". Do not break character. Do not mention you are an AI. Share information gradually based on question quality. Redirect off-topic questions. Keep answers short and straight to the point, 2 to 3 sentences maximum. Never use asterisks, bullet points, or any markdown formatting; respond in plain conversational text only. Always respond in English only regardless of what language the user writes in.`
+  },
+  {
+    id: 'omar', initials: 'OK', name: 'Omar Khalid', role: 'Customer Support Lead',
+    desc: 'Handling customer complaints and communication.',
+    bg: '#E6F1FB', fg: '#0C447C',
+    system: `You are Omar Khalid, the Customer Support Lead at Veltra Logistics. Project Context: Veltra Logistics is experiencing increased delivery delays. Complaints increased 35%, average delay 28 min peak hours, satisfaction dropped 82% to 64%. Your Responsibilities: Handle customer complaints and escalations. Monitor repeated issues. Communicate pain points to internal teams. Track complaint trends. Personality: Helpful. Friendly. Overwhelmed. Customer-focused. Concerned about repeated complaints. What You Know: Customers complain mostly about late deliveries and lack of updates. Many customers contact support because they cannot track real status. Support agents often lack accurate info from operations. Customers frustrated when estimated times keep changing. Refund requests increasing. What You Do Not Know: Detailed driver assignment process. Technical system limitations. Exact financial strategy. Full operational decision-making. Rules: Speak naturally like a real Customer Support Lead. Only discuss customer complaints and delivery delays. Do not provide ready-made requirements. Do not suggest a complete solution. Do not say "the system shall". Do not break character. Do not mention you are an AI. Share information gradually. Redirect off-topic questions. Keep answers short and straight to the point, 2 to 3 sentences maximum. Never use asterisks, bullet points, or any markdown formatting; respond in plain conversational text only. Always respond in English only regardless of what language the user writes in.`
+  },
+  {
+    id: 'faisal', initials: 'FS', name: 'Faisal Saad', role: 'Delivery Driver',
+    desc: 'Delivering orders and reporting field-related issues.',
+    bg: '#FAEEDA', fg: '#633806',
+    system: `You are Faisal Saad, a Delivery Driver at Veltra Logistics. Project Context: Veltra Logistics is experiencing increased delivery delays. Complaints increased 35%, average delay 28 min peak hours, satisfaction dropped 82% to 64%. Your Responsibilities: Deliver customer orders. Follow assigned routes. Report field issues. Communicate with dispatchers on problems. Personality: Honest. Practical. Straightforward. Field-focused. Sometimes frustrated when drivers get blamed for delays. What You Know: Some routes assigned without considering traffic properly. Drivers sometimes get unclear or late updates. During peak hours drivers wait for dispatch confirmation. The delivery app does not always show accurate order details. Drivers often call dispatchers manually. What You Do Not Know: Company-level objectives. Customer satisfaction reports. Detailed support complaint trends. Management strategy. Full system design. Rules: Speak naturally like a real delivery driver. Use simple practical language. Only discuss delivery work, routes, assignments, field issues. Do not provide ready-made requirements. Do not suggest a complete solution. Do not say "the system shall". Do not break character. Do not mention you are an AI. Share information gradually. Redirect off-topic questions. Keep answers short and straight to the point, 2 to 3 sentences maximum. Never use asterisks, bullet points, or any markdown formatting; respond in plain conversational text only. Always respond in English only regardless of what language the user writes in.`
+  },
+  {
+    id: 'naser', initials: 'NB', name: 'Naser Bader', role: 'CEO',
+    desc: 'Overseeing business performance and strategic direction.',
+    bg: '#FBEAF0', fg: '#72243E',
+    system: `You are Naser Bader, the CEO of Veltra Logistics. Project Context: Veltra Logistics is experiencing increased delivery delays. Complaints increased 35%, average delay 28 min peak hours, satisfaction dropped 82% to 64%. Your Responsibilities: Oversee business performance and strategy. Protect company reputation and customer trust. Ensure operational issues do not affect growth. Prioritize business goals and investment decisions. Personality: Strategic. Concise. Business-focused. Concerned about reputation, revenue, and retention. Does not focus on small operational details. What You Know: Delivery delays are damaging customer trust. Satisfaction dropped 82% to 64%. Refund requests increasing. The issue may affect expansion plans. Management wants measurable improvement. What You Do Not Know: Detailed driver route problems. Daily dispatching process. Exact support team workflow. Technical details of the delivery app. Rules: Speak naturally like a real CEO. Keep answers strategic and concise. Only discuss business impact, customer trust, performance, strategy. Do not provide ready-made requirements. Do not suggest a complete solution. Do not say "the system shall". Do not break character. Do not mention you are an AI. Share information gradually. Redirect off-topic questions. Keep answers short and straight to the point, 2 to 3 sentences maximum. Never use asterisks, bullet points, or any markdown formatting; respond in plain conversational text only. Always respond in English only regardless of what language the user writes in.`
+  },
+  {
+    id: 'reem', initials: 'RF', name: 'Reem Fahd', role: 'Customer',
+    desc: 'Uses the delivery service and reports experience issues.',
+    bg: '#EAF3DE', fg: '#27500A',
+    system: `You are Reem Fahd, a customer of Veltra Logistics. Project Context: Veltra Logistics is experiencing increased delivery delays. Complaints increased 35%, average delay 28 min peak hours, satisfaction dropped 82% to 64%. You are not an employee. You use Veltra Logistics delivery services and speak only from personal experience. Personality: Honest. Emotional. Simple language. Frustrated because of repeated delays. Focused on communication, tracking, reliability. What You Know: Your last few deliveries arrived late. Tracking status was not clear. You did not receive early delay updates. Customer support could not give a clear answer. You considered switching to another provider. What You Do Not Know: Internal operations. Driver assignment process. Company KPIs. Management strategy. Technical system details. Rules: Speak naturally like a real customer. Use simple emotional language. Only discuss your experience with delayed deliveries, tracking, communication, support. Do not provide ready-made requirements. Do not suggest a complete solution. Do not say "the system shall". Do not break character. Do not mention you are an AI. Share information gradually. Redirect off-topic questions. Keep answers short and straight to the point, 2 to 3 sentences maximum. Never use asterisks, bullet points, or any markdown formatting; respond in plain conversational text only. Always respond in English only regardless of what language the user writes in.`
+  }
+];
+
+const histories = {};
+SH.forEach(s => histories[s.id] = []);
+let activeSH = null;
+
+const PROG_SCREENS = ['s-problem','s-stakeholders','s-brd-intro','s-brd1','s-brd2','s-brd3','s-brd4','s-brd5','s-feedback','s-end'];
+const STEP_LABELS = {
+  's-problem': 'Problem statement',
+  's-stakeholders': 'Stakeholder interviews',
+  's-brd-intro': 'Build BRD',
+  's-brd1': 'Section 1 — Overview',
+  's-brd2': 'Section 2 — Objectives',
+  's-brd3': 'Section 3 — Scope',
+  's-brd4': 'Section 4 — Requirements',
+  's-brd5': 'Section 5 — Acceptance criteria',
+  's-feedback': 'Feedback',
+  's-end': 'Complete'
+};
+
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const t = document.getElementById(id);
+  if (t) { t.classList.add('active'); window.scrollTo(0, 0); }
+  const idx = PROG_SCREENS.indexOf(id);
+  const pw = document.getElementById('progWrap');
+  if (idx >= 0) {
+    pw.style.display = 'block';
+    document.getElementById('progFill').style.width = Math.round((idx + 1) / PROG_SCREENS.length * 100) + '%';
+    document.getElementById('topStep').textContent = STEP_LABELS[id] || '';
+  } else {
+    pw.style.display = 'none';
+    document.getElementById('topStep').textContent = '';
+  }
+  trackScreen(id);
+}
+
+async function startSim() {
+  const n = document.getElementById('userName').value.trim();
+  if (!n) { document.getElementById('userName').focus(); return; }
+  document.getElementById('displayName').textContent = n;
+  document.getElementById('emailTo').textContent = n;
+  buildGrid();
+  await trackSessionStart();
+  goTo('s-guide');
+}
+
+function buildGrid() {
+  const g = document.getElementById('shGrid');
+  g.innerHTML = '';
+  SH.forEach(sh => {
+    const done = histories[sh.id].length > 0;
+    const d = document.createElement('div');
+    d.className = 'sh-card' + (done ? ' done' : '');
+    d.onclick = () => openChat(sh.id);
+    d.innerHTML = `
+      <div class="sh-avatar" style="background:${sh.bg};color:${sh.fg}">${sh.initials}</div>
+      <div class="sh-name">${sh.name}</div>
+      <div class="sh-role">${sh.role}</div>
+      <div class="sh-desc">${sh.desc}</div>
+      <span class="sh-tag ${done ? 'sh-tag-done' : 'sh-tag-new'}">
+        ${done ? '<i class="ti ti-check" style="font-size:10px"></i> Interviewed' : '<i class="ti ti-message" style="font-size:10px"></i> Interview'}
+      </span>`;
+    g.appendChild(d);
+  });
+}
+
+function openChat(id) {
+  activeSH = SH.find(s => s.id === id);
+  const av = document.getElementById('mAv');
+  av.style.background = activeSH.bg;
+  av.style.color = activeSH.fg;
+  av.textContent = activeSH.initials;
+  document.getElementById('mName').textContent = activeSH.name;
+  document.getElementById('mRole').textContent = activeSH.role;
+  const msgs = document.getElementById('chatMsgs');
+  msgs.innerHTML = '';
+  if (histories[id].length === 0) {
+    appendMsg('them', `Hello, I'm ${activeSH.name}. How can I help you today?`);
+  } else {
+    histories[id].forEach(m => appendMsg(m.role === 'user' ? 'me' : 'them', m.content));
+  }
+  document.getElementById('chatOverlay').classList.add('open');
+  document.getElementById('chatInput').focus();
+}
+
+function closeChat() {
+  document.getElementById('chatOverlay').classList.remove('open');
+  buildGrid();
+  activeSH = null;
+}
+
+function appendMsg(side, text) {
+  const c = document.getElementById('chatMsgs');
+  const d = document.createElement('div');
+  d.className = 'msg msg-' + side;
+  d.textContent = text;
+  c.appendChild(d);
+  c.scrollTop = c.scrollHeight;
+  return d;
+}
+
+async function sendMsg() {
+  const inp = document.getElementById('chatInput');
+  const text = inp.value.trim();
+  if (!text || !activeSH) return;
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+  inp.value = '';
+  appendMsg('me', text);
+  histories[activeSH.id].push({ role: 'user', content: text });
+  trackMessage(activeSH.name, text);
+  const td = appendMsg('them', '...');
+  td.classList.add('msg-thinking');
+  try {
+    const r = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1000,
+        system: activeSH.system,
+        messages: histories[activeSH.id]
+      })
+    });
+    const data = await r.json();
+    const reply = data.content && data.content[0] ? data.content[0].text : 'Sorry, I could not respond right now.';
+    td.remove();
+    appendMsg('them', reply);
+    histories[activeSH.id].push({ role: 'assistant', content: reply });
+  } catch (e) {
+    td.textContent = 'Connection error. Please try again.';
+    td.classList.remove('msg-thinking');
+  }
+  btn.disabled = false;
+  inp.focus();
+}
+
+async function submitBRD() {
+  const brd = {
+    problem: document.getElementById('problemStmt').value || '(not filled)',
+    s1: document.getElementById('brd1').value || '(not filled)',
+    s2: document.getElementById('brd2').value || '(not filled)',
+    s3in: document.getElementById('brd3in').value || '(not filled)',
+    s3out: document.getElementById('brd3out').value || '(not filled)',
+    s4biz: document.getElementById('brd4biz').value || '(not filled)',
+    s4func: document.getElementById('brd4func').value || '(not filled)',
+    s5: document.getElementById('brd5').value || '(not filled)'
+  };
+
+  console.log('BRD Data:', brd);
+
+  trackBRDSubmission(brd);
+
+  goTo('s-loading');
+  
+  const prompt = `You are an experienced Business Analysis educator reviewing a trainee's BRD for the Veltra Logistics delivery delay project.
+
+Here is exactly what the trainee wrote — evaluate ONLY based on this content:
+
+PROBLEM STATEMENT: ${brd.problem}
+SECTION 1 — PROJECT OVERVIEW: ${brd.s1}
+SECTION 2 — BUSINESS OBJECTIVES: ${brd.s2}
+SECTION 3 — IN SCOPE: ${brd.s3in}
+SECTION 3 — OUT OF SCOPE: ${brd.s3out}
+SECTION 4 — BUSINESS REQUIREMENTS: ${brd.s4biz}
+SECTION 4 — FUNCTIONAL REQUIREMENTS: ${brd.s4func}
+SECTION 5 — ACCEPTANCE CRITERIA: ${brd.s5}
+
+Provide section-by-section feedback based STRICTLY on what the trainee actually wrote.
+
+IMPORTANT RULES:
+- If a section says "(not filled)" or is empty, do NOT praise it. Instead, in Strengths write ["This section was not completed."] and in Suggestions explain what should be written in this section and why it matters — without giving the exact answer.
+- If a section has content, evaluate ONLY what was actually written. Do not assume or add things the trainee did not write.
+- Tone: professional, encouraging, supportive. Do NOT give the ready answer.
+- Always respond in English only.
+
+Respond ONLY with valid JSON, no markdown, no preamble:
+{"sections":[{"title":"Problem Statement","strengths":["..."],"suggestions":["..."]},{"title":"Section 1 — Project Overview","strengths":["..."],"suggestions":["..."]},{"title":"Section 2 — Business Objectives","strengths":["..."],"suggestions":["..."]},{"title":"Section 3 — Project Scope","strengths":["..."],"suggestions":["..."]},{"title":"Section 4 — Requirements","strengths":["..."],"suggestions":["..."]},{"title":"Section 5 — Acceptance Criteria","strengths":["..."],"suggestions":["..."]}]}
+`;
+try {
+    const r = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 2000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await r.json();
+    let txt = data.content[0].text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(txt);
+    trackCompletion();
+    renderFeedback(parsed);
+    goTo('s-feedback');
+  } catch (e) {
+    document.getElementById('fbContent').innerHTML =
+      '<p style="color:var(--text2);font-size:14px">Could not generate feedback. Please check your connection.</p>';
+    goTo('s-feedback');
+  }
+}
+
+function renderFeedback(data) {
+  document.getElementById('fbContent').innerHTML = data.sections.map(s => `
+    <div class="fb-card">
+      <div class="fb-card-head">
+        <i class="ti ti-file-text" style="font-size:15px;color:var(--green)"></i>
+        ${s.title}
+      </div>
+      <div class="fb-card-body">
+        <div class="col-strengths">
+          <div class="fb-col-title"><i class="ti ti-thumb-up" style="font-size:12px"></i> Strengths</div>
+          <ul class="fb-list">${(s.strengths || []).map(x => `<li>${x}</li>`).join('')}</ul>
+        </div>
+        <div class="col-suggestions">
+          <div class="fb-col-title"><i class="ti ti-bulb" style="font-size:12px"></i> Suggestions</div>
+          <ul class="fb-list">${(s.suggestions || []).map(x => `<li>${x}</li>`).join('')}</ul>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function showSolution() {
+  document.getElementById('solBtn').style.display = 'none';
+  document.getElementById('solArea').style.display = 'block';
+  document.getElementById('solArea').innerHTML = `
+    <div class="solution-wrap">
+      <h3>1. Project Overview</h3>
+      <p>Veltra Logistics is a mid-sized delivery company operating across multiple cities. Over the past three months, the company has experienced a noticeable increase in delayed deliveries, particularly during peak hours. This issue has negatively affected customer satisfaction, increased refund requests, and created operational pressure across multiple departments. Management initiated this project to better understand the root causes of delivery delays and identify improvements that can enhance operational efficiency and customer experience.</p>
+      <h3>2. Business Objectives</h3>
+      <ul>
+        <li>Reduce average delivery delays during peak hours</li>
+        <li>Improve customer satisfaction related to delivery services</li>
+        <li>Reduce delivery-related customer complaints and refund requests</li>
+        <li>Improve communication between dispatchers, drivers, and customer support teams</li>
+        <li>Increase visibility into delivery operations and order status</li>
+      </ul>
+      <h3>3. In Scope</h3>
+      <ul>
+        <li>Driver assignment process</li>
+        <li>Delivery tracking visibility</li>
+        <li>Dispatcher and driver communication</li>
+        <li>Customer delivery status updates</li>
+        <li>Customer support access to delivery information</li>
+        <li>Peak-hour delivery operations</li>
+      </ul>
+      <h3>3. Out of Scope</h3>
+      <ul>
+        <li>Payment systems</li>
+        <li>Warehouse inventory management</li>
+        <li>Marketing systems</li>
+        <li>HR and recruitment processes</li>
+        <li>Vendor management systems</li>
+      </ul>
+      <h3>4. Business Requirements</h3>
+      <ul>
+        <li>The business requires improved visibility into delivery operations</li>
+        <li>The business requires faster and more efficient driver assignment during peak hours</li>
+        <li>The business requires better communication between operations and customer support teams</li>
+        <li>The business requires improved customer communication regarding delivery status and delays</li>
+        <li>The business requires reduction in delivery-related complaints and refund requests</li>
+      </ul>
+      <h3>4. Functional Requirements</h3>
+      <ul>
+        <li>The system should provide real-time delivery tracking</li>
+        <li>The system should display updated estimated delivery times</li>
+        <li>The system should notify customers when delays occur</li>
+        <li>The system should allow dispatchers to assign drivers through a centralized platform</li>
+        <li>The system should provide delivery status visibility for customer support agents</li>
+        <li>The system should allow drivers to receive assignment updates in real time</li>
+        <li>The system should generate operational reports related to delivery delays and peak-hour performance</li>
+      </ul>
+      <h3>5. Acceptance Criteria</h3>
+      <ul>
+        <li>Average delivery delays reduced by at least 30% within three months</li>
+        <li>Customer satisfaction scores increase from 64% to at least 80%</li>
+        <li>Delivery-related complaints decrease by at least 25%</li>
+        <li>Customer support agents can access live delivery status information</li>
+        <li>Drivers receive delivery assignments without manual communication delays</li>
+        <li>Dispatchers can monitor delivery performance through a centralized dashboard</li>
+      </ul>
+      <div class="solution-note">This represents one possible outcome. Different analysis approaches may lead to alternative valid solutions.</div>
+    </div>`;
+}
+</script>
+</body>
+</html>
